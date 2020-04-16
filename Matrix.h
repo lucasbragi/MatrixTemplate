@@ -187,6 +187,7 @@ Matrix<T, R, C> &Matrix<T, R, C>::operator+(const Matrix &m) {
             A[i][j] = (T)A[i][j] + m.A[i][j];
         }
     }
+    return *this;
 }
 
 template<typename T, int R, int C>
@@ -199,6 +200,7 @@ Matrix<T, R, C> &Matrix<T, R, C>::operator-(Matrix &m) {
             A[i][j] = (T)A[i][j] - m.A[i][j];
         }
     }
+    return *this;
 }
 
 template<typename T, int R, int C>
@@ -215,6 +217,7 @@ Matrix<T, R, C> &Matrix<T, R, C>::operator*(Matrix &m) {
             A[i][j] = sum;
         }
     }
+    return *this;
 }
 
 template<typename T, int R, int C>
