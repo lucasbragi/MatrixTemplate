@@ -7,113 +7,70 @@
 
 #include <cmath>
 
-template <typename T, int R, int C>
+template <typename T>
 class Matrix{
 private:
     int rows, columns;
-    T** A;
-    T** I;
-    T** B;  //Martrice [A|I] che servirà per il calcolo dell'inversa
-    T** Inv; //Matrice inversa
-    T** Transposed; //Matrice trasposta
-    T** sub_m; //Matrice per la sottomatrice del determinante
+    T*A;
 
 public:
-    Matrix();
+    Matrix(int r, int c);
     ~Matrix();
-    bool isSquared(); //Metodo per vedere se la matrice è quadrata
-    T insertValue(); //Metodo per inserire i valori da tastiera
-    T det(T** A2, T car); //Metodo per calcolare il determinante
-    T creationIdentity(); //Metodo per creare la matrice identità
-    void stampa(); //Metodo per stampare la matrice
-    void createB(); //Metodo per creare la matrice B, che servirà per calcolare l'inversa
-    void eliminazioniGauss(); //Metodo per fare le eliminazioni di Gauss, tecnica utilizzata per calcolare la matrice inversa
-    void copiaInversa();
-    void stampaInversa(); //Metodo per stampare l'inversa
-    T transposed(); //Metodo per calcolare la matrice trasposta
-    void stampaTransposed();
-    void inverse(); //Metodo per calcolare la matrice inversa
-    void riprova(); //Metodo per vedere se la matrice inversa appena calcolata è quella giusta
-    void stampaRiprova();
-    void stampaB();
-    void showColumn();
-    void showRow();
+    std::string toString();
+    void setValue(int x, int y, T value);
     T getValue(int x, int y);
-    int getCol();
-    int getRow();
+    Matrix<T> getCol(int y);
+    Matrix<T> getRow(int x);
+    void setCol(int y, Matrix<T> &cols);
+    void setCol(int y, T* value);
+    void setRow(int x, Matrix<T> &rows);
+    void setRow(int x, T* value);
+    bool isSquared();
+    Matrix<T> transposed();
+    T det(int car);
+    void stampa();
+    Matrix<T> inverse();
 
-    int operator==(Matrix&);
-    int operator!=(Matrix&);
-    Matrix& operator=(Matrix&);
-    Matrix& operator+(const Matrix&);
-    Matrix& operator-(Matrix&);
-    Matrix&operator*(Matrix&);
-
-
+    bool operator==(const Matrix<T> &m);
+    Matrix<T> &operator=(const Matrix<T> &m);
+    Matrix<T> operator+(const Matrix<T>& m);
+    Matrix<T> &operator+(const T num);
+    Matrix<T> operator*(const Matrix<T>& m);
+    Matrix<T> &operator*(const T num);
 };
 
-template<typename T, int R, int C>
-Matrix<T, R, C>::Matrix() {
-    rows = R;   //associo al valore delle righe il valore di R
-    columns = C;   //associo al valore delle colonne il valore di C
-    std::cout << "Creazione matrice RxC, con R: " << rows << " e C: " << columns << "\n";
-    A = new T*[rows];
-    for(int i = 0; i < rows; i++){
-        A[i] = new T[rows];
-    }
-
-    I = new T*[rows];
-    for (int i = 0; i < rows ; i++) {
-        I[i] = new T[rows];
-    }
-
-    B = new T*[rows];
-    for(int i = 0; i < rows; i++){
-        B[i] = new T[2*rows];
-    }
-
-    Inv=new T*[rows];
-    for(int i = 0; i < rows; i++){
-        Inv[i]=new T[rows];
-    }
-
-    Transposed = new T* [rows];
-    for(int i = 0; i < rows; i++){
-        Transposed[i] = new T[rows];
-    }
-
-    sub_m = new T*[rows];
-    for(int i = 0; i < rows; i++){
-        sub_m[i] = new T[rows];
+template<typename T>
+Matrix<T>::Matrix(int r, int c) {
+    rows = r;
+    columns = c;
+    A = new T[rows*columns];
+    for(int i = 0; i < rows*columns; i++){
+        A[i] = 0;
     }
 }
 
-template<typename T, int R, int C>
-Matrix<T, R, C>::~Matrix() {
+template<typename T>
+Matrix<T>::~Matrix() {
     if(A != 0){
-        delete A;
-    }
-
-    if(B != 0){
-        delete B;
-    }
-
-    if(Inv != 0){
-        delete Inv;
-    }
-
-    if(sub_m != 0){
-        delete sub_m;
-    }
-
-    if(Transposed != 0){
-        delete Transposed;
+        delete[] A;
     }
 }
 
-template<typename T, int R, int C>
-bool Matrix<T, R, C>::isSquared() {
-    if(R == C) {
+template<typename T>
+std::string Matrix<T>::toString() {
+    std::string ret;
+    for(int i = 0; i < rows; i++){
+        ret += " ";
+        for(int j = 0; j < columns; j++){
+            ret += std::to_string(A[i + j*rows]);
+        }
+    }
+    return ret;
+}
+
+template<typename T>
+bool Matrix<T>::isSquared() {
+    if(rows == columns) {
         std::cout << "La matrice A e' quadrata" << std::endl;
         return true;
     }else {
@@ -122,410 +79,338 @@ bool Matrix<T, R, C>::isSquared() {
     }
 }
 
-template<typename T, int R, int C>
-T Matrix<T, R, C>::insertValue() {
-    std::cout << "----------INSERIMENTO----------\n";
-    for(int i = 0; i < R; i++){
-        for(int j = 0; j < C; j++){
-            std::cout << "Elemento " << "(" << i << ","  << j << "):";
-            std::cin >> A[i][j];
-        }
-    }
-    std::cout << "----------FINE INSERIMENTO----------\n";
-    stampa();
-    return **A;
-}
-
-template<typename T, int R, int C>
-Matrix<T, R, C> &Matrix<T, R, C>::operator=(Matrix &m) {
-    if(m.rows != rows || m.columns != columns){
-        throw "noaction";
-    }else
-        for(int i = 0; i < R; i++){
-            for(int j = 0; j < C; j++){
-                m.A[i][j] = (T)A[i][j];
+template<typename T>
+Matrix<T> &Matrix<T>::operator=(const Matrix<T> &m) {
+    if(this != &m){
+        if(rows == m.rows && columns == m.columns){
+            for(int i = 0; i < rows*columns; i++){
+                A[i] = m.A[i];
             }
-        }
-    return *this;
-}
-
-template<typename T, int R, int C>
-int Matrix<T, R, C>::operator==(Matrix &m) {
-    if(m.rows != rows || m.columns != columns)
-        return 0;
-    else
-        for(int i = 0; i < R; i++){
-            for(int j = 0; j < C; j++){
-                if(m.A[i][j] != (T)A[i][j])
-                    return 0;
-            }
-        }
-    return 1;
-}
-
-template<typename T, int R, int C>
-int Matrix<T, R, C>::operator!=(Matrix &m) {
-    if(m.rows != rows || m.columns != columns)
-        return 1;
-    else
-        for(int i = 0; i < R; i++){
-            for(int j = 0; j < C; j++){
-                if(m.A[i][j] != (T)A[i][j])
-                    return 1;
-            }
-        }
-    return 0;
-}
-
-template<typename T, int R, int C>
-Matrix<T, R, C> &Matrix<T, R, C>::operator+(const Matrix &m) {
-    if(m.rows != rows || m.columns != columns)
-        throw "noaddiction";
-
-    for(int i = 0; i < R; i++){
-        for(int j = 0; j < C; j++){
-            A[i][j] = (T)A[i][j] + m.A[i][j];
+        } else{
+            throw std::domain_error("Rows and Columns doesn't match");
         }
     }
     return *this;
 }
 
-template<typename T, int R, int C>
-Matrix<T, R, C> &Matrix<T, R, C>::operator-(Matrix &m) {
-    if(m.rows != rows || m.columns != columns)
-        throw "nosubtraction";
+template<typename T>
+bool Matrix<T>::operator==(const Matrix<T> &m) {
+  if(rows == m.rows && columns == m.columns){
+      for(int i = 0; i < rows * columns; i++){
+          if(A[i] != m.A[i]){
+              return false;
+          }
+      }
+      return true;
+  }
+    return false;
+}
 
-    for(int i = 0; i < R; i++){
-        for(int j = 0; j < C; j++){
-            A[i][j] = (T)A[i][j] - m.A[i][j];
+template<typename T>
+Matrix<T> Matrix<T>::operator+(const Matrix<T> &m) {
+    if(rows == m.rows && columns == m.columns){
+        Matrix<T> sum(rows, columns);
+        for(int i = 0; i < rows*columns; i++){
+            sum.A[i] = A[i] + m.A[i];
         }
+        return sum;
+    } else{
+        throw std::domain_error("Rows and Columns doesn't match");
+    }
+}
+
+template<typename T>
+Matrix<T> &Matrix<T>::operator+(const T num) {
+    for(int i = 0; i < rows*columns; i++){
+        A[i] += num;
     }
     return *this;
 }
 
-template<typename T, int R, int C>
-Matrix<T, R, C> &Matrix<T, R, C>::operator*(Matrix &m) {
-    if(m.rows != columns)   //se non vale questo if non posso operare
-        throw "nooperation";
-
-    for(int i = 0; i < R; i++){
-        for(int j = 0; j < m.C; j++){
-            T sum = (T)0;
-            for(int k = 0; k < C; k++){
-                sum = sum + (T)A[i][k] * m.A[k][j];
+template<typename T>
+Matrix<T> Matrix<T>::operator*(const Matrix<T> &m) {
+    if(columns == m.rows){
+        Matrix<T> prodMatrix(rows, columns);
+        T tmp = 0;
+        for(int i = 0; i < rows; i++){
+            for(int j = 0; j < m.columns; j++){
+                for(int k = 0; k < columns; k++){
+                    tmp += A[i + k*rows] * m.A[k + j*rows];
+                }
+                prodMatrix.A[i + j*rows] = tmp;
+                tmp = 0;
             }
-            A[i][j] = sum;
         }
+        return prodMatrix;
+    } else{
+        throw std::domain_error("Rows and columns doesn't match");
+    }
+}
+
+template<typename T>
+Matrix<T> &Matrix<T>::operator*(const T num) {
+    for(int i = 0; i < rows*columns; i++){
+        A[i] *= num;
     }
     return *this;
 }
 
-template<typename T, int R, int C>
-T Matrix<T, R, C>::transposed() {
-    for(int i = 0; i < R; i++){
-        for(int j = 0; j < C; j++){
-            Transposed[j][i] = A[i][j];
+template<typename T>
+Matrix<T> Matrix<T>::transposed() {
+    Matrix<T> transMatrix(rows, columns);
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < columns; j++){
+            transMatrix.setValue(j, i, getValue(i, j));
         }
     }
-    stampaTransposed();
-    return **Transposed;
+    return transMatrix;
 }
 
 
-template<typename T, int R, int C>
-T Matrix<T, R, C>::det(T** A2, T car) {
+template<typename T>
+T Matrix<T>::det(int car) {
+    Matrix<T> sub_m(rows, columns);
     T determinant = 0;
     if(isSquared() == false)
         std::cout<<"Determinante impossibile da creare!"<<std::endl;
     if(car == 1) {
-        determinant == A2[0][0];
+        determinant = A[0];
         std::cout << "Il determinante e': " << determinant;
     }else if(car == 2){
-        determinant = A2[0][0]*A2[1][1] - A2[0][1]*A2[1][0];
+        determinant = A[0]*A[3] - A[1]*A[2];
         std::cout << "Il determinante e': " << determinant;
     } else{
-        for(int row = 0; row < R; row++){
-            std::cout << "\nCalcolo la sottomatrice\n";
-            for(int i = 0; i < R-1; i++){
-                for(int j = 0; j < C-1; j++){
+        for(int row = 0; row < rows; row++){
+            for(int i = 0; i < rows-1; i++){
+                for(int j = 0; j < columns-1; j++){
                     int sub_row = (i < row ? i : i+1);
                     int sub_col = j + 1;
-                    sub_m[i][j] = A2[sub_row][sub_col];
+                    sub_m.A[i + j*(car-1)] = A[sub_row + sub_col*rows];
                 }
             }
             if(row % 2 == 0){
-                determinant += A2[row][0] * det(sub_m, car-1);
+                determinant += A[row + 0*rows] * sub_m.det(car-1);
             }else{
-                determinant -= A2[row][0] * det(sub_m, car -1);
+                determinant -= A[row + 0*rows] * sub_m.det(car-1);
             }
         }
-        std::cout << "\nIl determinante finale e': " << determinant;
+        std::cout << "\n----------Il determinante finale e': ----------\n";
+        std::cout << determinant;
     }
     return determinant;
 }
 
-template<typename T, int R, int C>
-T Matrix<T, R, C>::creationIdentity() {
-    for(int i = 0; i < R; i++){
-        for(int j = 0; j < C; j++){
-            if(i == j){
-                I[i][j] = 1;
-            } else{
-                I[i][j] = 0;
-            }
-        }
-    }
-    return **I;
-}
-
-template<typename T, int R, int C>
-void Matrix<T, R, C>::stampa() {
-    std::cout << "\n----------Stampa matrice A----------\n\n";
-    for(int i = 0; i < R; i++){
-        for(int j = 0; j < C; j++){
-            std::cout << A[i][j] <<"\t";
+template<typename T>
+void Matrix<T>::stampa() {
+    std::cout << "\n----------Stampa matrice: ----------\n\n";
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < columns; j++){
+            std::cout << A[i + j*rows] <<"\t";
         }
         std::cout << "\n";
     }
     std::cout << "\n----------Fine stampa----------\n";
 }
 
-template<typename T, int R, int C>
-void Matrix<T, R, C>::createB() {
-    for(int i = 0; i < R; i++) {
-        for (int j = 0; j < R; j++) {
-            B[i][j] = A[i][j];
-        }
-    }
-
-    for(int i = 0; i < R; i++) {
-        for(int k = R; k < 2*R; k++){
-            if(i == k-R){
-                B[i][k] = 1;
-            } else
-                B[i][k] = 0;
-        }
-    }
-    stampaB();
-}
-
-template<typename T, int R, int C>
-void Matrix<T, R, C>::inverse() {
-    if(!this->isSquared() || this->det(A, R) == 0){
+template<typename T>
+Matrix<T> Matrix<T>::inverse() {
+    Matrix<T> gaussMatrix(rows, 2*columns);
+    Matrix<T> inversematrix(rows, columns);
+    if(!this->isSquared() || this->det(rows) == 0) {
         std::cout << "\nInversa impossibile da creare!\n";
-    }else{
-        eliminazioniGauss();
-    }
-}
-
-template<typename T, int R, int C>
-void Matrix<T, R, C>::eliminazioniGauss() {
-    std::cout << "\n----------APPLICO IL METODO DI GAUSS----------\n\n";
-    T *tmp;
-    tmp = new T[2*R];
-    for(int j = 0; j < R-1; j++){
-        for(int i = j+1; i < R; i++) {
-            if(B[j][j] == 0){
-                T *tmp2 = new T[2*R];
-                T *tmp3 = new T[2*R];
-                if(B[i][j] != 0){
-                    for(int k = 0; k < 2*R; k++){
-                        tmp2[k] = B[j][k];
-                        tmp3[k] = B[i][k];
-                    }
-                    for(int k = 0; k < 2*R; k++){
-                        B[i][k] = tmp2[k];
-                        B[j][k] = tmp3[k];
-                    }
-                }
-            }
-            if (B[i][j] != 0) {
-                T mol = B[i][j] / B[j][j];
-                for (int k = 0; k < 2 * R; k++) {
-                    tmp[k] = mol * B[j][k];
-                }
-                for (int k = 0; k < 2 * R; k++){
-                    B[i][k] -= tmp[k];
-                }
-            }if(B[i][i] == 0){
-                T *tmp2;
-                T *tmp3;
-                tmp2 = new T[2*R];
-                tmp3 = new T[2*R];
-
-
-            }
-        }
-    }
-    std::cout << "Faccio l'eliminazione di Gauss sotto la diagonale:\n";
-    for(int i = 0; i < R; i++){
-        for(int k = 0; k < 2*R; k++){
-            std::cout << B[i][k] << "\t";
-        }
-        std::cout << "\n";
-    }
-    for(int j = R-1; j > 0; j--) {
-        for (int i = j-1; i >= 0; i--){
-            if (B[i][j] != 0) {
-                T mol = B[i][j] / B[j][j];
-                for (int k = 0; k < 2 * R; k++){
-                    tmp[k] = mol * B[j][k];
-                }
-                for (int k = 0; k < 2 * R; k++){
-                    B[i][k] -= tmp[k];
-                }
-            }
-        }
-    }
-
-    std::cout << "Faccio l'eliminazione di Gauss sopra la diagonale:\n";
-    for(int i = 0; i < R; i++){
-        for(int k = 0; k < 2*R; k++){
-            std::cout << B[i][k] << "\t";
-        }
-        std::cout << "\n";
-    }
-
-    for(int i = 0; i < R; i++) {
-        if (B[i][i] != 1) {
-            T mol = B[i][i];
-            for (int k = 0; k < 2 * R; k++) {
-                B[i][k] = B[i][k] / mol;
-            }
-        }
-    }
-
-    std::cout << "Divido per i pivots\n";
-    for(int i = 0; i < R; i++){
-        for(int k = 0; k < 2*R; k++){
-            std::cout << B[i][k] << "\t";
-        }
-        std::cout << "\n";
-    }
-    std::cout << "\n----------FINE METODO DI GAUSS-----------\n";
-    copiaInversa();
-}
-
-template<typename T, int R, int C>
-void Matrix<T, R, C>::copiaInversa() {
-    int k = 0;
-    for(int i = 0; i < R; i++) {
-        for(int j = R; j < 2*R; j++,k++){
-            Inv[i][k]=B[i][j];
-        }
-        k = 0;
-    }
-    stampaInversa();
-}
-
-template<typename T, int R, int C>
-void Matrix<T, R, C>::stampaInversa() {
-    std::cout << "\n\n----------MATRICE INVERSA----------\n\n";
-    for(int i = 0; i < R; i++){
-        for(int j = 0; j < R; j++){
-            std::cout << Inv[i][j] << "\t";
-        }
-        std::cout << "\n";
-    }
-    std::cout << "\n\n----------FINE INVERSA----------\n\n";
-    riprova();
-}
-
-template<typename T, int R, int C>
-void Matrix<T, R, C>::stampaTransposed() {
-    std::cout << "\n----------STAMPA TRASPOSTA----------\n\n";
-    for(int i = 0; i < R; i++){
-        for(int j = 0; j < C; j++){
-            std::cout << Transposed[i][j] << "\t";
-        }
-        std::cout << "\n";
-    }
-    std::cout << "\n----------FINE STAMPA TRASPOSTA----------\n";
-}
-
-template<typename T, int R, int C>
-void Matrix<T, R, C>::riprova() {
-    for(int i = 0; i < R; i++) {
-        for (int j = 0; j < R; j++){
-            I[i][j] = 0;
-        }
-    }
-    // Ho azzerato l'inversa per usarla dopo nella riprova
-
-    for(int i = 0; i < R; i++) {
-        for (int j = 0; j < R; j++){
-            for (int k = 0; k < R; k++){
-                I[i][j] += (A[i][k] * Inv[k][j]);
-            }
-        }
-    }
-    stampaRiprova();
-}
-
-//Se ho calcolato bene la matrice inversa, il risultato di questo metodo sarà la matrice identità
-template<typename T, int R, int C>
-void Matrix<T, R, C>::stampaRiprova() {
-    std::cout  << "\n----------Stampa di A*A^-1----------\n";
-    for(int i = 0; i < R; i++) {
-        for(int j = 0; j < R; j++){
-            std::cout << I[i][j] << "\t";
-        }
-        std::cout << "\n";
-    }
-    std::cout << "----------Fine Stampa di A*A^-1----------\n";
-}
-
-template<typename T, int R, int C>
-void Matrix<T, R, C>::stampaB() {
-    std::cout << "\n----------Affianco la matrice identita'----------\n";
-    for(int i = 0; i < R; i++){
-        for(int k = 0; k < 2*R; k++){
-            std::cout << B[i][k] << "\t";
-        }
-        std::cout << "\n";
-    }
-    std::cout << "\n------------------------------\n";
-}
-
-template<typename T, int R, int C>
-void Matrix<T, R, C>::showRow() {
-    for(int i = 0; i < R; i++){
-        std::cout << "\nLa riga i: " << i << "\t e' composta da:\n";
-        for(int j = 0; j < C; j++){
-            std::cout << A[i][j] << "\t";
-        }
-    }
-}
-
-template<typename T, int R, int C>
-void Matrix<T, R, C>::showColumn() {
-    for(int i = 0; i < R; i++){
-        std::cout << "\nLa Colonna i: " << i << "\t e' composta da:\n";
-        for(int j = 0; j < C; j++){
-            std::cout << A[j][i] << "\n";
-        }
-    }
-}
-
-template<typename T, int R, int C>
-T Matrix<T, R, C>::getValue(int x, int y) {
-    if(x >= R || y >= C) {
-        std::cout << "Attento! Hai inserito un indice che non rispetta i limiti posti\n";
     } else{
-        std::cout << "Il valore scelto e':\t" << A[x][y];
+        std::cout << "\n----------APPLICO IL METODO DI GAUSS----------\n\n";
+
+        for(int i = 0; i < rows; i++){
+            for(int j = 0; j < columns; j++){
+                gaussMatrix.A[i + j*rows] = A[i + j*rows];
+            }
+        }
+
+        for(int i = 0; i < rows; i++){
+            for(int k = rows; k < 2*columns; k++){
+                if(i == k - rows){
+                    gaussMatrix.A[i + k*rows] = 1;
+                } else{
+                    gaussMatrix.A[i +k*rows] = 0;
+                }
+            }
+        }
+
+        T *tmp = new T[2*rows];
+
+        for(int j = 0; j < rows-1; j++){
+            for(int i = j+1; i < rows; i++) {
+                if(gaussMatrix.A[j + j*rows] == 0){
+                    T *tmp2 = new T[2*rows];
+                    T *tmp3 = new T[2*rows];
+                    if(gaussMatrix.A[i + j*rows] != 0){
+                        for(int k = 0; k < 2*rows; k++){
+                            tmp2[k] = gaussMatrix.A[j + k*rows];
+                            tmp3[k] = gaussMatrix.A[i + k*rows];
+                        }
+                        for(int k = 0; k < 2*rows; k++){
+                            gaussMatrix.A[i + k*rows] = tmp2[k];
+                            gaussMatrix.A[j + k*rows] = tmp3[k];
+                        }
+                    }
+                }
+                if (gaussMatrix.A[i + j*rows] != 0) {
+                    T mol = gaussMatrix.A[i + j*rows] / gaussMatrix.A[j + j*rows];
+                    for (int k = 0; k < 2 * rows; k++) {
+                        tmp[k] = mol * gaussMatrix.A[j + k*rows];
+                    }
+                    for (int k = 0; k < 2 * rows; k++){
+                        gaussMatrix.A[i + k*rows] -= tmp[k];
+                    }
+                }if(gaussMatrix.A[i + i*rows] == 0){
+                    T *tmp2;
+                    T *tmp3;
+                    tmp2 = new T[2*rows];
+                    tmp3 = new T[2*rows];
+                }
+            }
+        }
+        std::cout << "Faccio l'eliminazione di Gauss sotto la diagonale:\n";
+        for(int i = 0; i < rows; i++){
+            for(int k = 0; k < 2*rows; k++){
+                std::cout << gaussMatrix.A[i + k*rows] << "\t";
+            }
+            std::cout << "\n";
+        }
+        for(int j = rows-1; j > 0; j--) {
+            for (int i = j-1; i >= 0; i--){
+                if (gaussMatrix.A[i + j*rows] != 0) {
+                    T mol = gaussMatrix.A[i + j*rows] / gaussMatrix.A[j + j*rows];
+                    for (int k = 0; k < 2 * rows; k++){
+                        tmp[k] = mol * gaussMatrix.A[j + k*rows];
+                    }
+                    for (int k = 0; k < 2 * rows; k++){
+                        gaussMatrix.A[i + k*rows] -= tmp[k];
+                    }
+                }
+            }
+        }
+
+        std::cout << "Faccio l'eliminazione di Gauss sopra la diagonale:\n";
+        for(int i = 0; i < rows; i++){
+            for(int k = 0; k < 2*rows; k++){
+                std::cout << gaussMatrix.A[i + k*rows] << "\t";
+            }
+            std::cout << "\n";
+        }
+
+        for(int i = 0; i < rows; i++) {
+            if (gaussMatrix.A[i + i*rows] != 1) {
+                T mol = gaussMatrix.A[i + i*rows];
+                for (int k = 0; k < 2 * rows; k++) {
+                    gaussMatrix.A[i + k*rows] = gaussMatrix.A[i + k*rows] / mol;
+                }
+            }
+        }
+
+        std::cout << "Divido per i pivots\n";
+        for(int i = 0; i < rows; i++){
+            for(int k = 0; k < 2*rows; k++){
+                std::cout << gaussMatrix.A[i + k*rows] << "\t";
+            }
+            std::cout << "\n";
+        }
+        std::cout << "\n----------FINE METODO DI GAUSS-----------\n";
+
+        int k = 0;
+        for(int i = 0; i < rows; i++) {
+            for(int j = rows; j < 2*rows; j++,k++){
+                inversematrix.A[i + k*rows]=gaussMatrix.A[i + j*rows];
+            }
+            k = 0;
+        }
+        inversematrix.stampa();
     }
-    return A[x][y];
+    return inversematrix;
 }
 
-template<typename T, int R, int C>
-int Matrix<T, R, C>::getCol() {
-    return C;
+template<typename T>
+T Matrix<T>::getValue(int x, int y) {
+    if(x >= 0 && x < rows && y >= 0 && y < rows){
+        return A[x + y*rows];
+    } else{
+        throw std::out_of_range("Out of range");
+    }
 }
 
-template<typename T, int R, int C>
-int Matrix<T, R, C>::getRow() {
-    return R;
+template<typename T>
+void Matrix<T>::setValue(int x, int y, T value) {
+    if(x >= 0 && x < rows && y >= 0 && y < columns){
+        A[x + y*rows] = value;
+    } else{
+        throw std::out_of_range("Out of range");
+    }
 }
+
+template<typename T>
+Matrix<T> Matrix<T>::getCol(int y) {
+    Matrix<T> col(rows, 1);
+    for(int i = 0; i < rows; i++){
+        col.setValue(i, 0, getValue(i, y));
+    }
+    return col;
+}
+
+template<typename T>
+Matrix<T> Matrix<T>::getRow(int x) {
+    Matrix<T> row(1, columns);
+    for(int j = 0; j < columns; j++){
+        row. setValue(0, j, getValue(x, j));
+    }
+    return row;
+}
+
+template<typename T>
+void Matrix<T>::setCol(int y, Matrix<T> &colMatrix) {
+    if(colMatrix.columns == 1 && y >= 0 && y < columns){
+        if(rows == colMatrix.rows){
+            for(int i = 0; i < rows; i++){
+                setValue(i, y, colMatrix.getValue(i, 0));
+            }
+        } else{
+            throw std::domain_error("Matrix hasn't got the same rows");
+        }
+    } else{
+        throw std::domain_error("Column index is invalid");
+    }
+}
+
+template<typename T>
+void Matrix<T>::setRow(int x, Matrix<T> &rowMatrix) {
+    if(rowMatrix.rows == 1 && x >= 0 && x < rows){
+        if(columns == rowMatrix.columns){
+            for(int j = 0; j < columns; j++){
+                setValue(x, j, rowMatrix.getValue(0, j));
+            }
+        } else{
+            throw std::domain_error("Matrix hasn't got the same columns");
+        }
+    } else {
+        throw std::domain_error("Row index is invalid");
+    }
+}
+
+template<typename T>
+void Matrix<T>::setCol(int y, T * value) {
+    for(int i = 0; i < rows; i++){
+        setValue(i, y, value[i]);
+    }
+}
+
+template<typename T>
+void Matrix<T>::setRow(int x, T* value) {
+    for(int j = 0; j < columns; j++){
+        setValue(x, j, value[j]);
+    }
+}
+
+
 
 
 #endif //UNTITLED4_MATRIX_H

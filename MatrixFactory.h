@@ -8,13 +8,13 @@
 #include <iostream>
 #include "Matrix.h"
 
-template <typename T, int R, int C>
+template <typename T>
 class MatrixFactory{
 public:
-    Matrix<T, R, C> createMatrix(std::string type){
+    Matrix<T> createMatrix(std::string type, int r, int c){
         if(type == ""){
             std::cout << "Matrice creata" << std::endl;
-            Matrix<T, R, C> m;
+            Matrix<T> m(r, c);
             return m;
         }
     }
