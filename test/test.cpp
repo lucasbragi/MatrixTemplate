@@ -10,9 +10,15 @@ protected:
     TestMatrix() : matrix(3, 3) {}
 
     void setMatrix() {
-        matrix.setRow(0, new int[3]{1, 3, 1});
-        matrix.setRow(1, new int[3]{2, 8, 0});
-        matrix.setRow(2, new int[3]{1, 6, 3});
+        matrix.setValue(0, 0, 1);
+        matrix.setValue(0, 1, 3);
+        matrix.setValue(0, 2, 1);
+        matrix.setValue(1, 0, 2);
+        matrix.setValue(1, 1, 8);
+        matrix.setValue(1, 2, 0);
+        matrix.setValue(2, 0, 1);
+        matrix.setValue(2, 1, 6);
+        matrix.setValue(2, 2, 3);
     }
     Matrix<int> matrix;
 };
@@ -65,9 +71,9 @@ TEST_F(TestMatrix, setRow){
 TEST_F(TestMatrix, getTransposed){
     setMatrix();
     Matrix<int> transposedMatrix(3, 3);
-    transposedMatrix.setRow(0, new int[3]{1, 2, 1});
-    transposedMatrix.setRow(1, new int[3]{3, 8, 6});
-    transposedMatrix.setRow(2, new int[3]{1, 0, 3});
+    transposedMatrix.setCol(0, matrix);
+    transposedMatrix.setCol(1, matrix);
+    transposedMatrix.setCol(2, matrix);
     bool condition = false;
     if(matrix.transposed() == transposedMatrix){
         condition = true;
@@ -80,12 +86,28 @@ TEST_F(TestMatrix, sumMatrix){
     Matrix<int> m1(3, 3);
     Matrix<int> m2(3, 3);
     Matrix<int> sum(3, 3);
-    m1.setRow(0, new int[3]{1, 4, 3});
-    m1.setRow(1, new int[3]{3, 5, 9});
-    m1.setRow(2, new int[3]{6, 8, 4});
-    m2.setRow(0, new int[3]{2, 7, 4});
-    m2.setRow(1, new int[3]{5, 13, 9});
-    m2.setRow(2, new int[3]{7, 14, 7});
+
+    m1.setValue(0, 0, 1);
+    m1.setValue(0, 1, 4);
+    m1.setValue(0, 2, 3);
+    m1.setValue(1, 0, 3);
+    m1.setValue(1, 1, 5);
+    m1.setValue(1, 2, 9);
+    m1.setValue(2, 0, 6);
+    m1.setValue(2, 1, 8);
+    m1.setValue(2, 2, 4);
+
+    m2.setValue(0, 0, 2);
+    m2.setValue(0, 1, 7);
+    m2.setValue(0, 2, 4);
+    m2.setValue(1, 0, 5);
+    m2.setValue(1, 1, 13);
+    m2.setValue(1, 2, 9);
+    m2.setValue(2, 0, 7);
+    m2.setValue(2, 1, 14);
+    m2.setValue(2, 2, 7);
+
+
     for(int i = 0; i < 3; i++){
         for(int j = 0; j < 3; j++){
             sum.setValue(i, j, matrix.getValue(i, j) + m1.getValue(i, j));
@@ -102,9 +124,17 @@ TEST_F(TestMatrix, sum_scalar){
     setMatrix();
     Matrix<int> sum(3,3);
     Matrix<int> tryMatrix(3, 3);
-    tryMatrix.setRow(0, new int[3]{4, 6, 4});
-    tryMatrix.setRow(1, new int[3]{5, 11, 3});
-    tryMatrix.setRow(2, new int[3]{4, 9, 6});
+
+    tryMatrix.setValue(0, 0, 4);
+    tryMatrix.setValue(0, 1, 6);
+    tryMatrix.setValue(0, 2, 4);
+    tryMatrix.setValue(1, 0, 5);
+    tryMatrix.setValue(1, 1, 11);
+    tryMatrix.setValue(1, 2, 3);
+    tryMatrix.setValue(2, 0, 4);
+    tryMatrix.setValue(2, 1, 9);
+    tryMatrix.setValue(2, 2, 6);
+
     sum = matrix + 3;
     bool condition = false;
     if(sum == tryMatrix){
@@ -119,12 +149,26 @@ TEST_F(TestMatrix, productMatrix){
     Matrix<int> m2(3, 3);
     Matrix<int> product(3, 3);
     int prod = 0;
-    m1.setRow(0, new int[3]{1, 4, 3});
-    m1.setRow(1, new int[3]{3, 5, 9});
-    m1.setRow(2, new int[3]{6, 8, 4});
-    m2.setRow(0, new int[3]{16, 27, 34});
-    m2.setRow(1, new int[3]{26, 48, 78});
-    m2.setRow(2, new int[3]{37, 58, 69});
+    m1.setValue(0, 0, 1);
+    m1.setValue(0, 1, 4);
+    m1.setValue(0, 2, 3);
+    m1.setValue(1, 0, 3);
+    m1.setValue(1, 1, 5);
+    m1.setValue(1, 2, 9);
+    m1.setValue(2, 0, 6);
+    m1.setValue(2, 1, 8);
+    m1.setValue(2, 2, 4);
+
+    m2.setValue(0, 0, 16);
+    m2.setValue(0, 1, 27);
+    m2.setValue(0, 2, 34);
+    m2.setValue(1, 0, 26);
+    m2.setValue(1, 1, 48);
+    m2.setValue(1, 2, 78);
+    m2.setValue(2, 0, 37);
+    m2.setValue(2, 1, 58);
+    m2.setValue(2, 2, 69);
+
     for(int i = 0; i < 3; i++){
         for(int j = 0; j < 3; j++){
             for(int k = 0; k < 3; k++){
@@ -145,9 +189,15 @@ TEST_F(TestMatrix, product_scalar){
     setMatrix();
     Matrix<int> prod(3, 3);
     Matrix<int> tryMatrix(3, 3);
-    tryMatrix.setRow(0, new int[3]{3, 9, 3});
-    tryMatrix.setRow(1, new int[3]{6, 24, 0});
-    tryMatrix.setRow(2, new int[3]{3, 18, 9});
+    tryMatrix.setValue(0, 0, 3);
+    tryMatrix.setValue(0, 1, 9);
+    tryMatrix.setValue(0, 2, 3);
+    tryMatrix.setValue(1, 0, 6);
+    tryMatrix.setValue(1, 1, 24);
+    tryMatrix.setValue(1, 2, 0);
+    tryMatrix.setValue(2, 0, 3);
+    tryMatrix.setValue(2, 1, 18);
+    tryMatrix.setValue(2, 2, 9);
     for(int i = 0; i < 3; i++){
         for(int j = 0; j < 3; j++){
             prod.setValue(i, j, matrix.getValue(i, j)*3);
@@ -163,9 +213,17 @@ TEST_F(TestMatrix, product_scalar){
 TEST_F(TestMatrix, inverseMatrix){
     setMatrix();
     Matrix<int> tryMatrix(3, 3);
-    tryMatrix.setRow(0, new int[3]{1, 0, 0});
-    tryMatrix.setRow(1, new int[3]{0, 1, 0});
-    tryMatrix.setRow(2, new int[3]{0, 0, 1});
+
+    tryMatrix.setValue(0, 0, 1);
+    tryMatrix.setValue(0, 1, 0);
+    tryMatrix.setValue(0, 2, 0);
+    tryMatrix.setValue(1, 0, 0);
+    tryMatrix.setValue(1, 1, 1);
+    tryMatrix.setValue(1, 2, 0);
+    tryMatrix.setValue(2, 0, 0);
+    tryMatrix.setValue(2, 1, 0);
+    tryMatrix.setValue(2, 2, 1);
+
     bool condition = false;
     if(tryMatrix == matrix * (matrix.inverse())){
         condition = true;
@@ -181,9 +239,16 @@ TEST_F(TestMatrix, determinant){
 TEST_F(TestMatrix, copyOperator){
     setMatrix();
     Matrix<int> m(3, 3);
-    m.setRow(0, new int[3]{1, 3, 2});
-    m.setRow(1, new int[3]{4, 8, 0});
-    m.setRow(2, new int[3]{1, 9, 2});
+
+    m.setValue(0, 0, 1);
+    m.setValue(0, 1, 3);
+    m.setValue(0, 2, 2);
+    m.setValue(1, 0, 4);
+    m.setValue(1, 1, 8);
+    m.setValue(1, 2, 0);
+    m.setValue(2, 0, 1);
+    m.setValue(2, 1, 9);
+    m.setValue(2, 2, 2);
 
     matrix = m;
 
