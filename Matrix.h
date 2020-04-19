@@ -16,21 +16,21 @@ private:
 public:
     Matrix(int r, int c);
     ~Matrix();
-    std::string toString();
+    std::string toString() const;
     void setValue(int x, int y, T value);
     T getValue(int x, int y) const ;
-    Matrix<T> getCol(int y);
-    Matrix<T> getRow(int x);
+    Matrix<T> getCol(int y) const;
+    Matrix<T> getRow(int x) const;
     void setCol(int y, Matrix<T> &cols);
-    void setCol(int y, T* value);
+    void setCol(int y, const Matrix<T>& m1);
     void setRow(int x, Matrix<T> &rows);
-    void setRow(int x, T* value);
+    void setRow(int x, const Matrix<T>& m1);
     bool isSquared() const ;
     Matrix<T> transposed();
     T det(int car);
     Matrix<T> inverse();
 
-    bool operator==(const Matrix<T> &m);
+    bool operator==(const Matrix<T> &m) const;
     Matrix<T> &operator=(const Matrix<T> &m);
     Matrix<T> operator+(const Matrix<T>& m);
     Matrix<T> &operator+(const T num);
@@ -56,7 +56,7 @@ Matrix<T>::~Matrix() {
 }
 
 template<typename T>
-std::string Matrix<T>::toString() {
+std::string Matrix<T>::toString() const {
     std::string ret;
     for(int i = 0; i < rows; i++){
         ret += " ";
@@ -86,7 +86,7 @@ T Matrix<T>::getValue(int x, int y) const {
 }
 
 template<typename T>
-Matrix<T> Matrix<T>::getCol(int y) {
+Matrix<T> Matrix<T>::getCol(int y) const {
     Matrix<T> col(rows, 1);
     for(int i = 0; i < rows; i++){
         col.setValue(i, 0, getValue(i, y));
@@ -95,7 +95,7 @@ Matrix<T> Matrix<T>::getCol(int y) {
 }
 
 template<typename T>
-Matrix<T> Matrix<T>::getRow(int x) {
+Matrix<T> Matrix<T>::getRow(int x) const{
     Matrix<T> row(1, columns);
     for(int j = 0; j < columns; j++){
         row. setValue(0, j, getValue(x, j));
@@ -119,9 +119,9 @@ void Matrix<T>::setCol(int y, Matrix<T> &colMatrix) {
 }
 
 template<typename T>
-void Matrix<T>::setCol(int y, T * value) {
+void Matrix<T>::setCol(int y, const Matrix<T>& m1) {
     for(int i = 0; i < rows; i++){
-        setValue(i, y, value[i]);
+        setValue(i, y, m1[i + y*rows]);
     }
 }
 
@@ -141,9 +141,9 @@ void Matrix<T>::setRow(int x, Matrix<T> &rowMatrix) {
 }
 
 template<typename T>
-void Matrix<T>::setRow(int x, T* value) {
+void Matrix<T>::setRow(int x, const Matrix<T>& m1) {
     for(int j = 0; j < columns; j++){
-        setValue(x, j, value[j]);
+        setValue(x, j, m1[x + j*rows]);
     }
 }
 
@@ -286,7 +286,7 @@ Matrix<T> Matrix<T>::inverse() {
 }
 
 template<typename T>
-bool Matrix<T>::operator==(const Matrix<T> &m) {
+bool Matrix<T>::operator==(const Matrix<T> &m) const{
     if(rows == m.rows && columns == m.columns){
         for(int i = 0; i < rows * columns; i++){
             if(A[i] != m.A[i]){
@@ -362,20 +362,6 @@ Matrix<T> &Matrix<T>::operator*(const T num) {
     }
     return *this;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
