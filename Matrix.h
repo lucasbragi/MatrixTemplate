@@ -18,17 +18,16 @@ public:
     ~Matrix();
     std::string toString();
     void setValue(int x, int y, T value);
-    T getValue(int x, int y);
+    T getValue(int x, int y) const ;
     Matrix<T> getCol(int y);
     Matrix<T> getRow(int x);
     void setCol(int y, Matrix<T> &cols);
     void setCol(int y, T* value);
     void setRow(int x, Matrix<T> &rows);
     void setRow(int x, T* value);
-    bool isSquared();
+    bool isSquared() const ;
     Matrix<T> transposed();
     T det(int car);
-    void stampa();
     Matrix<T> inverse();
 
     bool operator==(const Matrix<T> &m);
@@ -69,90 +68,92 @@ std::string Matrix<T>::toString() {
 }
 
 template<typename T>
-bool Matrix<T>::isSquared() {
-    if(rows == columns) {
-        std::cout << "La matrice A e' quadrata" << std::endl;
-        return true;
-    }else {
-        std::cout << "La matrice A non e' quadrata\n" << std::endl;
-        return false;
+void Matrix<T>::setValue(int x, int y, T value) {
+    if(x >= 0 && x < rows && y >= 0 && y < columns){
+        A[x + y*rows] = value;
+    } else{
+        throw std::out_of_range("Out of range");
     }
 }
 
 template<typename T>
-Matrix<T> &Matrix<T>::operator=(const Matrix<T> &m) {
-    if(this != &m){
-        if(rows == m.rows && columns == m.columns){
-            for(int i = 0; i < rows*columns; i++){
-                A[i] = m.A[i];
+T Matrix<T>::getValue(int x, int y) const {
+    if(x >= 0 && x < rows && y >= 0 && y < rows){
+        return A[x + y*rows];
+    } else{
+        throw std::out_of_range("Out of range");
+    }
+}
+
+template<typename T>
+Matrix<T> Matrix<T>::getCol(int y) {
+    Matrix<T> col(rows, 1);
+    for(int i = 0; i < rows; i++){
+        col.setValue(i, 0, getValue(i, y));
+    }
+    return col;
+}
+
+template<typename T>
+Matrix<T> Matrix<T>::getRow(int x) {
+    Matrix<T> row(1, columns);
+    for(int j = 0; j < columns; j++){
+        row. setValue(0, j, getValue(x, j));
+    }
+    return row;
+}
+
+template<typename T>
+void Matrix<T>::setCol(int y, Matrix<T> &colMatrix) {
+    if(colMatrix.columns == 1 && y >= 0 && y < columns){
+        if(rows == colMatrix.rows){
+            for(int i = 0; i < rows; i++){
+                setValue(i, y, colMatrix.getValue(i, 0));
             }
         } else{
-            throw std::domain_error("Rows and Columns doesn't match");
+            throw std::domain_error("Matrix hasn't got the same rows");
         }
-    }
-    return *this;
-}
-
-template<typename T>
-bool Matrix<T>::operator==(const Matrix<T> &m) {
-  if(rows == m.rows && columns == m.columns){
-      for(int i = 0; i < rows * columns; i++){
-          if(A[i] != m.A[i]){
-              return false;
-          }
-      }
-      return true;
-  }
-    return false;
-}
-
-template<typename T>
-Matrix<T> Matrix<T>::operator+(const Matrix<T> &m) {
-    if(rows == m.rows && columns == m.columns){
-        Matrix<T> sum(rows, columns);
-        for(int i = 0; i < rows*columns; i++){
-            sum.A[i] = A[i] + m.A[i];
-        }
-        return sum;
     } else{
-        throw std::domain_error("Rows and Columns doesn't match");
+        throw std::domain_error("Column index is invalid");
     }
 }
 
 template<typename T>
-Matrix<T> &Matrix<T>::operator+(const T num) {
-    for(int i = 0; i < rows*columns; i++){
-        A[i] += num;
+void Matrix<T>::setCol(int y, T * value) {
+    for(int i = 0; i < rows; i++){
+        setValue(i, y, value[i]);
     }
-    return *this;
 }
 
 template<typename T>
-Matrix<T> Matrix<T>::operator*(const Matrix<T> &m) {
-    if(columns == m.rows){
-        Matrix<T> prodMatrix(rows, columns);
-        T tmp = 0;
-        for(int i = 0; i < rows; i++){
-            for(int j = 0; j < m.columns; j++){
-                for(int k = 0; k < columns; k++){
-                    tmp += A[i + k*rows] * m.A[k + j*rows];
-                }
-                prodMatrix.A[i + j*rows] = tmp;
-                tmp = 0;
+void Matrix<T>::setRow(int x, Matrix<T> &rowMatrix) {
+    if(rowMatrix.rows == 1 && x >= 0 && x < rows){
+        if(columns == rowMatrix.columns){
+            for(int j = 0; j < columns; j++){
+                setValue(x, j, rowMatrix.getValue(0, j));
             }
+        } else{
+            throw std::domain_error("Matrix hasn't got the same columns");
         }
-        return prodMatrix;
-    } else{
-        throw std::domain_error("Rows and columns doesn't match");
+    } else {
+        throw std::domain_error("Row index is invalid");
     }
 }
 
 template<typename T>
-Matrix<T> &Matrix<T>::operator*(const T num) {
-    for(int i = 0; i < rows*columns; i++){
-        A[i] *= num;
+void Matrix<T>::setRow(int x, T* value) {
+    for(int j = 0; j < columns; j++){
+        setValue(x, j, value[j]);
     }
-    return *this;
+}
+
+template<typename T>
+bool Matrix<T>::isSquared() const{
+    if(rows == columns) {
+        return true;
+    }else {
+        return false;
+    }
 }
 
 template<typename T>
@@ -166,19 +167,16 @@ Matrix<T> Matrix<T>::transposed() {
     return transMatrix;
 }
 
-
 template<typename T>
 T Matrix<T>::det(int car) {
     Matrix<T> sub_m(rows, columns);
     T determinant = 0;
     if(isSquared() == false)
-        std::cout<<"Determinante impossibile da creare!"<<std::endl;
+        throw std::domain_error("Rows and Columns don't match");
     if(car == 1) {
         determinant = A[0];
-        std::cout << "Il determinante e': " << determinant;
     }else if(car == 2){
         determinant = A[0]*A[3] - A[1]*A[2];
-        std::cout << "Il determinante e': " << determinant;
     } else{
         for(int row = 0; row < rows; row++){
             for(int i = 0; i < rows-1; i++){
@@ -194,22 +192,8 @@ T Matrix<T>::det(int car) {
                 determinant -= A[row + 0*rows] * sub_m.det(car-1);
             }
         }
-        std::cout << "\n----------Il determinante finale e': ----------\n";
-        std::cout << determinant;
     }
     return determinant;
-}
-
-template<typename T>
-void Matrix<T>::stampa() {
-    std::cout << "\n----------Stampa matrice: ----------\n\n";
-    for(int i = 0; i < rows; i++){
-        for(int j = 0; j < columns; j++){
-            std::cout << A[i + j*rows] <<"\t";
-        }
-        std::cout << "\n";
-    }
-    std::cout << "\n----------Fine stampa----------\n";
 }
 
 template<typename T>
@@ -217,10 +201,8 @@ Matrix<T> Matrix<T>::inverse() {
     Matrix<T> gaussMatrix(rows, 2*columns);
     Matrix<T> inversematrix(rows, columns);
     if(!this->isSquared() || this->det(rows) == 0) {
-        std::cout << "\nInversa impossibile da creare!\n";
+        throw std::domain_error("Rows and Columns don't match");
     } else{
-        std::cout << "\n----------APPLICO IL METODO DI GAUSS----------\n\n";
-
         for(int i = 0; i < rows; i++){
             for(int j = 0; j < columns; j++){
                 gaussMatrix.A[i + j*rows] = A[i + j*rows];
@@ -271,13 +253,6 @@ Matrix<T> Matrix<T>::inverse() {
                 }
             }
         }
-        std::cout << "Faccio l'eliminazione di Gauss sotto la diagonale:\n";
-        for(int i = 0; i < rows; i++){
-            for(int k = 0; k < 2*rows; k++){
-                std::cout << gaussMatrix.A[i + k*rows] << "\t";
-            }
-            std::cout << "\n";
-        }
         for(int j = rows-1; j > 0; j--) {
             for (int i = j-1; i >= 0; i--){
                 if (gaussMatrix.A[i + j*rows] != 0) {
@@ -291,15 +266,6 @@ Matrix<T> Matrix<T>::inverse() {
                 }
             }
         }
-
-        std::cout << "Faccio l'eliminazione di Gauss sopra la diagonale:\n";
-        for(int i = 0; i < rows; i++){
-            for(int k = 0; k < 2*rows; k++){
-                std::cout << gaussMatrix.A[i + k*rows] << "\t";
-            }
-            std::cout << "\n";
-        }
-
         for(int i = 0; i < rows; i++) {
             if (gaussMatrix.A[i + i*rows] != 1) {
                 T mol = gaussMatrix.A[i + i*rows];
@@ -308,16 +274,6 @@ Matrix<T> Matrix<T>::inverse() {
                 }
             }
         }
-
-        std::cout << "Divido per i pivots\n";
-        for(int i = 0; i < rows; i++){
-            for(int k = 0; k < 2*rows; k++){
-                std::cout << gaussMatrix.A[i + k*rows] << "\t";
-            }
-            std::cout << "\n";
-        }
-        std::cout << "\n----------FINE METODO DI GAUSS-----------\n";
-
         int k = 0;
         for(int i = 0; i < rows; i++) {
             for(int j = rows; j < 2*rows; j++,k++){
@@ -325,90 +281,101 @@ Matrix<T> Matrix<T>::inverse() {
             }
             k = 0;
         }
-        inversematrix.stampa();
     }
     return inversematrix;
 }
 
 template<typename T>
-T Matrix<T>::getValue(int x, int y) {
-    if(x >= 0 && x < rows && y >= 0 && y < rows){
-        return A[x + y*rows];
-    } else{
-        throw std::out_of_range("Out of range");
+bool Matrix<T>::operator==(const Matrix<T> &m) {
+    if(rows == m.rows && columns == m.columns){
+        for(int i = 0; i < rows * columns; i++){
+            if(A[i] != m.A[i]){
+                return false;
+            }
+        }
+        return true;
     }
+    return false;
 }
 
 template<typename T>
-void Matrix<T>::setValue(int x, int y, T value) {
-    if(x >= 0 && x < rows && y >= 0 && y < columns){
-        A[x + y*rows] = value;
-    } else{
-        throw std::out_of_range("Out of range");
-    }
-}
-
-template<typename T>
-Matrix<T> Matrix<T>::getCol(int y) {
-    Matrix<T> col(rows, 1);
-    for(int i = 0; i < rows; i++){
-        col.setValue(i, 0, getValue(i, y));
-    }
-    return col;
-}
-
-template<typename T>
-Matrix<T> Matrix<T>::getRow(int x) {
-    Matrix<T> row(1, columns);
-    for(int j = 0; j < columns; j++){
-        row. setValue(0, j, getValue(x, j));
-    }
-    return row;
-}
-
-template<typename T>
-void Matrix<T>::setCol(int y, Matrix<T> &colMatrix) {
-    if(colMatrix.columns == 1 && y >= 0 && y < columns){
-        if(rows == colMatrix.rows){
-            for(int i = 0; i < rows; i++){
-                setValue(i, y, colMatrix.getValue(i, 0));
+Matrix<T> &Matrix<T>::operator=(const Matrix<T> &m) {
+    if(this != &m){
+        if(rows == m.rows && columns == m.columns){
+            for(int i = 0; i < rows*columns; i++){
+                A[i] = m.A[i];
             }
         } else{
-            throw std::domain_error("Matrix hasn't got the same rows");
+            throw std::domain_error("Rows and Columns dont't match");
         }
+    }
+    return *this;
+}
+
+
+
+template<typename T>
+Matrix<T> Matrix<T>::operator+(const Matrix<T> &m) {
+    if(rows == m.rows && columns == m.columns){
+        Matrix<T> sum(rows, columns);
+        for(int i = 0; i < rows*columns; i++){
+            sum.A[i] = A[i] + m.A[i];
+        }
+        return sum;
     } else{
-        throw std::domain_error("Column index is invalid");
+        throw std::domain_error("Rows and Columns don't match");
     }
 }
 
 template<typename T>
-void Matrix<T>::setRow(int x, Matrix<T> &rowMatrix) {
-    if(rowMatrix.rows == 1 && x >= 0 && x < rows){
-        if(columns == rowMatrix.columns){
-            for(int j = 0; j < columns; j++){
-                setValue(x, j, rowMatrix.getValue(0, j));
+Matrix<T> &Matrix<T>::operator+(const T num) {
+    for(int i = 0; i < rows*columns; i++){
+        A[i] += num;
+    }
+    return *this;
+}
+
+template<typename T>
+Matrix<T> Matrix<T>::operator*(const Matrix<T> &m) {
+    if(columns == m.rows){
+        Matrix<T> prodMatrix(rows, columns);
+        T tmp = 0;
+        for(int i = 0; i < rows; i++){
+            for(int j = 0; j < m.columns; j++){
+                for(int k = 0; k < columns; k++){
+                    tmp += A[i + k*rows] * m.A[k + j*rows];
+                }
+                prodMatrix.A[i + j*rows] = tmp;
+                tmp = 0;
             }
-        } else{
-            throw std::domain_error("Matrix hasn't got the same columns");
         }
-    } else {
-        throw std::domain_error("Row index is invalid");
+        return prodMatrix;
+    } else{
+        throw std::domain_error("Rows and columns don't match");
     }
 }
 
 template<typename T>
-void Matrix<T>::setCol(int y, T * value) {
-    for(int i = 0; i < rows; i++){
-        setValue(i, y, value[i]);
+Matrix<T> &Matrix<T>::operator*(const T num) {
+    for(int i = 0; i < rows*columns; i++){
+        A[i] *= num;
     }
+    return *this;
 }
 
-template<typename T>
-void Matrix<T>::setRow(int x, T* value) {
-    for(int j = 0; j < columns; j++){
-        setValue(x, j, value[j]);
-    }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
