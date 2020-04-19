@@ -13,7 +13,6 @@ class MatrixFactory{
 public:
     Matrix<T> createMatrix(std::string type, int r, int c){
         if(type == ""){
-            std::cout << "Matrice creata" << std::endl;
             Matrix<T> m(r, c);
             return m;
         }
